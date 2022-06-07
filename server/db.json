@@ -1,0 +1,20 @@
+{
+  "users": [
+    {
+      "id": "u1",
+      "name": "Alejandro Quiros",
+      "lastName": "Medrano Jacobo",
+      "email": "alejandro.jacobo@outlook.es",
+      "password": "123456?A",
+      "photo": "https://www.xtrafondos.com/wallpapers/vertical/anime-chica-estudiante-de-uniforme-3723.jpg"
+    },
+    {
+      "id": "u2",
+      "name": "Rogger",
+      "lastName": "Barrientos Mauricio",
+      "email": "rogger.b@gmail.com",
+      "password": "12345?A",
+      "photo": "https://scontent.flim19-1.fna.fbcdn.net/v/t1.6435-9/117123225_185660102943336_8408309288464511385_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=09cbfe&_nc_ohc=ZT8I71He8q8AX8RTStk&tn=PrcSjIv-A9QdBQg5&_nc_ht=scontent.flim19-1.fna&oh=00_AT83xLkOXVWlc6aeCg_3Mx3IZc4syYC860orOyAwsig6MA&oe=62C24349"
+    }
+  ]
+}
