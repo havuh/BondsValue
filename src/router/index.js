@@ -16,6 +16,16 @@ const routes = [
     path: '/auth/sign-up',
     name: 'signUp',
     component: () => import('../auth/pages/SignUp'),
+  },
+  {
+    path: '/home-bono',
+    name: 'homeBono',
+    component: () => import('../bono/pages/HomeBono'),
+  },
+  {
+    path: '/form-bono',
+    name: 'formBono',
+    component: () => import('../bono/pages/FormBono'),
   }
 ]
 
