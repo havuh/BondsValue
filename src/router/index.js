@@ -26,7 +26,7 @@ const routes = [
     path: '/form-bono',
     name: 'formBono',
     component: () => import('../bono/pages/FormBono'),
-  }
+  },
 ]
 
 const router = createRouter({
