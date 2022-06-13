@@ -47,6 +47,7 @@
                             prepend-inner-icon="mdi-lock"
                             required>
               </v-text-field>
+              <p v-if="isPasswordExists" class="text-white mb-5" style="font-size: 1.1rem">El correo electrónico que ingresó ya se encuentra registrado</p>
               <v-btn class="button-ing text-white font-1-5rem" @click="signUp()">Registrarse</v-btn>
             </v-form>
             <p class="text-white font-1-5rem mt-5">¿Ya tienes una cuenta? <a @click="goToSignIn()" style="cursor: pointer" class="text-red">Ingresa aquí</a></p>
@@ -58,16 +59,20 @@
 </template>
 
 <script>
+import UsersService from '../services/users.service'
+
 export default {
   name: "SignUp",
   data: () => ({
     user: {
+      id: '',
       name: '',
       lastname: '',
       email: '',
       password: '',
       photo: '',
     },
+    isPasswordExists: false,
     emailRules: [
       v => !!v || 'El correo electronico es obligatorio',
       v => /.+@.+/.test(v) || 'El correo electronico no es válido'
@@ -86,6 +91,9 @@ export default {
     ],
     valid: true,
   }),
+  mounted() {
+    console.log(this.$store.state.user);
+  },
   methods: {
     goToSignIn(){
       this.$router.push({path: `/auth/sign-in`});
@@ -93,11 +101,25 @@ export default {
     validate(){
       this.$refs.formSignUp.validate();
     },
-    signUp(){
+    async signUp(){
       this.$refs.formSignUp.validate();
       if(this.valid) {
-
-        console.log(this.user);
+        await UsersService.getByEmail(this.user.email)
+            .then(response => {
+              if(response.data.length > 0) { this.isPasswordExists = true; }
+              else {
+                this.isPasswordExists = false;
+                UsersService.getAll()
+                .then(response => {
+                  this.user.id = "u" + (response.data.length + 1).toString();
+                  UsersService.create(this.user).then(response => {
+                    if(response.status == 201) this.goToSignIn();
+                  });
+                })
+              }
+            }).catch(error => {
+              this.errors.push(error);
+            })
       }
     }
   }

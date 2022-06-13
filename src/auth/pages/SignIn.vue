@@ -29,6 +29,7 @@
                             prepend-inner-icon="mdi-lock"
                             required>
               </v-text-field>
+              <p v-if="isDataIncorrect" class="text-white mb-5" style="font-size: 1.1rem">Los datos ingresados son incorrectos</p>
               <v-btn class="button-ing text-white font-1-5rem" @click="signIn()">Ingresar</v-btn>
             </v-form>
             <div class="d-flex align-center mt-4">
@@ -48,6 +49,9 @@
 </template>
 
 <script>
+import UsersService from '../services/users.service'
+import AuthService from '../services/auth.service'
+
 export default {
   name: "SignIn",
   data: () => ({
@@ -55,6 +59,7 @@ export default {
       email: '',
       password: '',
     },
+    isDataIncorrect: false,
     emailRules: [
       v => !!v || 'El correo electrónico es requerido',
       v => /.+@.+/.test(v) || 'El correo electrónico no es válido'
@@ -64,6 +69,9 @@ export default {
     ],
     valid: true,
   }),
+  mounted() {
+    console.log(this.$store.state.user);
+  },
   methods: {
     goToSignUp(){
       this.$router.push({path: `/auth/sign-up`});
@@ -71,13 +79,35 @@ export default {
     validate(){
       this.$refs.formSignIn.validate();
     },
-    signIn(){
+    async signIn(){
       this.$refs.formSignIn.validate();
-      if(this.valid){
-        console.log(this.user);
+      if(this.valid) {
+        await UsersService.getByEmail(this.user.email)
+        .then(response => {
+          if(response.data.length > 0) {
+            if (response.data[0].password == this.user.password) {
+              //Inicia sesion
+              this.isDataIncorrect = false;
+              AuthService.logIn(response.data[0]);
+              this.$store.state.user = response.data[0];
+              this.$store.state.auth = true;
+              console.log(this.$store.state.user);
+
+              this.$router.push({path: `/home-bono`});
+            }
+            else {
+              //Contraseña incorrecta
+              this.isDataIncorrect = true;
+            }
+          }
+          else {
+            //Email no encontrado
+            this.isDataIncorrect = true;
+          }
+        })
       }
     }
-  }
+  },
 }
 
 </script>

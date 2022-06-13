@@ -20,11 +20,17 @@ const routes = [
   {
     path: '/home-bono',
     name: 'homeBono',
+    meta: {
+      requiresAuth: true
+    },
     component: () => import('../bono/pages/HomeBono'),
   },
   {
     path: '/form-bono',
     name: 'formBono',
+    meta: {
+      requiresAuth: true
+    },
     component: () => import('../bono/pages/FormBono'),
   },
 ]
