@@ -16,5 +16,16 @@
       "password": "12345?A",
       "photo": "https://scontent.flim19-1.fna.fbcdn.net/v/t1.6435-9/117123225_185660102943336_8408309288464511385_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=09cbfe&_nc_ohc=ZT8I71He8q8AX8RTStk&tn=PrcSjIv-A9QdBQg5&_nc_ht=scontent.flim19-1.fna&oh=00_AT83xLkOXVWlc6aeCg_3Mx3IZc4syYC860orOyAwsig6MA&oe=62C24349"
     }
+  ],
+  "bonds": [
+    {
+      "id": "b1",
+      "name": "BBVA Action",
+      "nominalValue": 200,
+      "couponRate": 2,
+      "expiration": "20/12/2022",
+      "capitalizationType": "semestral",
+      "marketType": "primario"
+    }
   ]
 }
