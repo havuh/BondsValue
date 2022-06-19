@@ -5,15 +5,9 @@
       <v-btn
           flat
           @click="addNewBond()"
-          class="mr-2 btn-a"
+          class="btn-a"
           style="background-color: #40c464;">
         Agregar
-      </v-btn>
-      <v-btn
-          flat
-          class="btn-a"
-          style="background-color: #e03c34;">
-        Eliminar
       </v-btn>
     </div>
   </v-container>
@@ -49,16 +43,17 @@
         <td>{{ item.couponRate }} %</td>
         <td class="text-center">
           <v-btn icon="mdi-eye" size="small"
-                 color="primary" class="mr-2" @click="goToComponent(index)"></v-btn>
+                 color="primary" class="mr-2" @click="goToComponent(item.id)"></v-btn>
           <v-btn icon="mdi-pencil" size="small"
                  color="primary" class="mr-2"></v-btn>
           <v-btn icon="mdi-delete" size="small"
-                 color="warning"></v-btn>
+                 color="warning" @click="deleteBond(item.id)"></v-btn>
         </td>
       </tr>
       </tbody>
     </v-table>
   </v-container>
+
   <!--Form new bond-->
   <v-dialog
       persistent
@@ -66,12 +61,14 @@
   >
     <v-card class="card-new-bond">
       <div class="title-new-bond">
-        <p class="mt-2">Bono Corporativo</p>
+        <p class="mt-2">Bono Coorporativo</p>
       </div>
 
       <v-form ref="formNewBond" v-model="valid" lazy-validation class="form-new-bond">
         <p class="form-new-bond_title">Nombre</p>
         <v-text-field placeholder="Founding Bound"
+                      v-model="formNewBonds.name"
+                      :rules="oblRule"
                       class="mb-4"
                       density="compact"
                       variant="contained"
@@ -81,6 +78,9 @@
         <p class="form-new-bond_title">Valor Nominal</p>
         <div class="d-flex">
           <v-text-field placeholder="10000"
+                        v-model="formNewBonds.nominalValue"
+                        :rules="oblRule"
+                        type="number"
                         class="mb-4"
                         style="max-width: 70%"
                         density="compact"
@@ -100,6 +100,9 @@
         </div>
         <p class="form-new-bond_title">Tasa cupón (anual)</p>
         <v-text-field placeholder="2%"
+                      v-model="formNewBonds.couponRate"
+                      :rules="oblRule"
+                      type="number"
                       class="mb-4"
                       density="compact"
                       variant="contained"
@@ -108,6 +111,8 @@
         </v-text-field>
         <p class="form-new-bond_title">Vencimiento</p>
         <v-text-field class="mb-4"
+                      v-model="formNewBonds.expiration"
+                      :rules="expirationRules"
                       density="compact"
                       variant="contained"
                       type="date"
@@ -132,6 +137,7 @@
                         variant="contained"
                         hide-details>
         </v-autocomplete>
+        <!--TODO: Form para mercado secundario-->
       </v-form>
 
       <v-divider></v-divider>
@@ -141,7 +147,7 @@
         <v-btn class="button-can" @click="dialogNewBond = false">
           Cancelar
         </v-btn>
-        <v-btn class="button-fin text-white" @click="dialogNewBond = false">
+        <v-btn class="button-fin text-white" @click="createBond()">
           Agregar
         </v-btn>
       </v-card-actions>
@@ -167,16 +173,37 @@ export default {
       marketType: ['Primario', 'Secundario'],
       bonds: [],
       formNewBonds: {
+        id: '',
+        name: '',
+        nominalValue: null,
         currency: 'USD',
+        couponRate: null,
+        expiration: '',
         capitalizationType: 'Anual',
         marketType: 'Primario',
+        VAN: 0,
+        TIR: 0,
+        userId: this.$store.state.user.id
       },
       dialogNewBond: false,
       valid: true,
+      dateToday: null,
+      oblRule: [
+          v => !!v || 'Nombre es obligatorio'
+      ],
+      expirationRules: [
+          v => (this.dateToday < v) || 'Fecha no válida'
+      ]
     }
   },
   mounted() {
     this.retrieveBondsByUserId();
+    let date = new Date()
+    if (date.getMonth() + 1 < 10)
+      this.dateToday = `${date.getFullYear()}-0${date.getMonth() + 1}-${date.getDate()}`;
+    else
+      this.dateToday = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+    console.log(this.dateToday);
   },
   methods: {
     retrieveBondsByUserId() {
@@ -189,13 +216,40 @@ export default {
     },
     addNewBond() {
       this.openFormNewBond();
-
     },
     openFormNewBond() {
       this.dialogNewBond = true;
     },
-    goToComponent(index) {
-      console.log(this.bonds[index]);
+    goToComponent(id) {
+      console.log(id);
+    },
+    async createBond() {
+      this.$refs.formNewBond.validate();
+      if (this.valid) {
+        //TODO: mostrar errores en el formulario
+        await BonoService.getAll()
+            .then(response => {
+              this.formNewBonds.id = response.data.length + 1;
+              BonoService.create(this.formNewBonds).then(response => {
+                if(response.status == 201) {
+                  this.dialogNewBond = false;
+                  this.retrieveBondsByUserId()}
+              }).catch(error => {
+                this.errors.push(error);
+              });
+            }).catch(error => {
+              this.errors.push(error);
+            })
+      }
+    },
+    async deleteBond(id) {
+      await BonoService.delete(id)
+          .then(response => {
+            if(response.status == 200)
+            this.retrieveBondsByUserId();
+          }).catch(error => {
+            this.errors.push(error);
+          })
     }
   }
 }

@@ -102,7 +102,7 @@ export default {
       this.$refs.formSignUp.validate();
     },
     async signUp(){
-      this.$refs.formSignUp.validate();
+      this.validate();
       if(this.valid) {
         await UsersService.getByEmail(this.user.email)
             .then(response => {

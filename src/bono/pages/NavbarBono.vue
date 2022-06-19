@@ -37,7 +37,7 @@ export default {
       { title: 'Mi perfil' },
       { title: 'Configuración'},
       { title: 'Cerrar sesión' },
-    ]
+    ],
   }),
   methods: {
     n(index) {

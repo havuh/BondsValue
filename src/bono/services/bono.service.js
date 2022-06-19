@@ -9,6 +9,9 @@ class BonoService {
     getAllByUserId(userId) {
         return http.get(`${this.endPoint}?userId=${userId}`);
     }
+    create(createBonoDto) {
+        return http.post(`${this.endPoint}`, createBonoDto);
+    }
     delete(id) {
         return http.delete(`${this.endPoint}/${id}`);
     }
