@@ -23,6 +23,14 @@
       "email": "rodrigo.esteban@gmail.com",
       "password": "123456?A",
       "photo": ""
+    },
+    {
+      "id": "u4",
+      "name": "Mavila",
+      "lastname": "Jacobo",
+      "email": "mavila.jacobo@hotmail.com",
+      "password": "12345678?",
+      "photo": ""
     }
   ],
   "bonds": [

@@ -37,7 +37,7 @@
           v-for="(item, index) in bonds"
           :key="index"
       >
-        <td>{{ item.id }}</td>
+        <td>{{ index + 1 }}</td>
         <td>{{ item.name }}</td>
         <td>{{ item.nominalValue }}</td>
         <td>{{ item.couponRate }} %</td>
@@ -47,7 +47,7 @@
           <v-btn icon="mdi-pencil" size="small"
                  color="primary" class="mr-2"></v-btn>
           <v-btn icon="mdi-delete" size="small"
-                 color="warning" @click="deleteBond(item.id)"></v-btn>
+                 color="warning" @click="goToDeleteComponent(index)"></v-btn>
         </td>
       </tr>
       </tbody>
@@ -153,6 +153,36 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!--Delete bond-->
+  <v-dialog
+      persistent
+      v-model="dialogDeleteBond"
+  >
+    <v-card class="card-new-bond">
+      <div class="title-new-bond" style="background-color: #E21212 !important">
+        <p class="mt-2">Bono Coorporativo</p>
+      </div>
+
+      <v-card-text style="font-size: 1.3rem;">
+        ¿Estás seguro de querer eliminar <span class="title-delete-bond">{{ deleteBondItem.name }}</span> ?
+      </v-card-text>
+
+      <v-divider></v-divider>
+
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn class="button-can" @click="dialogDeleteBond = false">
+          Cancelar
+        </v-btn>
+        <v-btn class="button-fin text-white"
+               style="background-color: #E21212 !important"
+               @click="deleteBond(deleteBondItem.id)">
+          Eliminar
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -186,16 +216,19 @@ export default {
         userId: this.$store.state.user.id
       },
       dialogNewBond: false,
+      deleteBondItem: {},
+      dialogDeleteBond: false,
       valid: true,
       dateToday: null,
       oblRule: [
-          v => !!v || 'Nombre es obligatorio'
+          v => !!v || 'Campo obligatorio'
       ],
       expirationRules: [
           v => (this.dateToday < v) || 'Fecha no válida'
       ]
     }
   },
+
   mounted() {
     this.retrieveBondsByUserId();
     let date = new Date()
@@ -205,6 +238,7 @@ export default {
       this.dateToday = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
     console.log(this.dateToday);
   },
+
   methods: {
     retrieveBondsByUserId() {
       BonoService.getAllByUserId(this.$store.state.user.id)
@@ -215,9 +249,6 @@ export default {
       })
     },
     addNewBond() {
-      this.openFormNewBond();
-    },
-    openFormNewBond() {
       this.dialogNewBond = true;
     },
     goToComponent(id) {
@@ -242,11 +273,18 @@ export default {
             })
       }
     },
+    goToDeleteComponent(index) {
+      this.dialogDeleteBond = true;
+      this.deleteBondItem = this.bonds[index];
+    },
     async deleteBond(id) {
       await BonoService.delete(id)
           .then(response => {
-            if(response.status == 200)
-            this.retrieveBondsByUserId();
+            if(response.status == 200) {
+              this.deleteBondItem = {},
+              this.dialogDeleteBond = false;
+              this.retrieveBondsByUserId();
+            }
           }).catch(error => {
             this.errors.push(error);
           })
@@ -294,5 +332,9 @@ export default {
   margin-right: 30px;
   font-weight: bold;
   width: 70px;
+}
+.title-delete-bond {
+  font-weight: bold;
+  color: #90f46c;
 }
 </style>
