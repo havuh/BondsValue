@@ -6,6 +6,9 @@ class BonoService {
     getAll() {
         return http.get(this.endPoint);
     }
+    getById(id) {
+        return http.get(`${this.endPoint}/${id}`);
+    }
     getAllByUserId(userId) {
         return http.get(`${this.endPoint}?userId=${userId}`);
     }

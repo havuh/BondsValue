@@ -31,6 +31,14 @@
       "email": "mavila.jacobo@hotmail.com",
       "password": "12345678?",
       "photo": ""
+    },
+    {
+      "id": "u5",
+      "name": "Heber",
+      "lastname": "Traidor",
+      "email": "heber.traidor@gmail.com",
+      "password": "123456?A",
+      "photo": ""
     }
   ],
   "bonds": [
@@ -40,7 +48,8 @@
       "nominalValue": 2000,
       "currency": "USD",
       "couponRate": 2,
-      "expiration": "2022-12-20",
+      "expiration": 5,
+      "expirationType": "Meses",
       "capitalizationType": "Semestral",
       "marketType": "Primario",
       "VAN": 0,
@@ -53,7 +62,8 @@
       "nominalValue": 5000,
       "currency": "USD",
       "couponRate": 8,
-      "expiration": "2028-08-15",
+      "expiration": 7,
+      "expirationType": "Años",
       "capitalizationType": "Anual",
       "marketType": "Primario",
       "VAN": 0,
@@ -66,7 +76,8 @@
       "nominalValue": 1000,
       "currency": "PEN",
       "couponRate": 9,
-      "expiration": "2026-07-12",
+      "expiration": 5,
+      "expirationType": "Dias",
       "capitalizationType": "Mensual",
       "marketType": "Primario",
       "VAN": 0,
@@ -79,7 +90,8 @@
       "nominalValue": 2500,
       "currency": "PEN",
       "couponRate": 15,
-      "expiration": "2024-11-05",
+      "expiration": 8,
+      "expirationType": "Meses",
       "capitalizationType": "Bimestral",
       "marketType": "Primario",
       "VAN": 0,
@@ -92,12 +104,27 @@
       "nominalValue": 15000,
       "currency": "USD",
       "couponRate": 25,
-      "expiration": "2027-02-14",
+      "expiration": 2,
+      "expirationType": "Meses",
       "capitalizationType": "Anual",
       "marketType": "Primario",
       "VAN": 0,
       "TIR": 0,
       "userId": "u1"
+    },
+    {
+      "id": 6,
+      "name": "BCP",
+      "nominalValue": 5000,
+      "currency": "PEN",
+      "couponRate": 31,
+      "expiration": 15,
+      "expirationType": "Meses",
+      "capitalizationType": "Bimestral",
+      "marketType": "Primario",
+      "VAN": 0,
+      "TIR": 0,
+      "userId": "u5"
     }
   ]
 }

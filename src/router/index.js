@@ -26,12 +26,12 @@ const routes = [
     component: () => import('../bono/pages/HomeBono'),
   },
   {
-    path: '/form-bono',
-    name: 'formBono',
+    path: '/bono-detail/:id',
+    name: 'bonoDetail',
     meta: {
       requiresAuth: true
     },
-    component: () => import('../bono/pages/FormBono'),
+    component: () => import('../bono/pages/BonoDetail'),
   },
 ]
 

@@ -39,7 +39,7 @@
       >
         <td>{{ index + 1 }}</td>
         <td>{{ item.name }}</td>
-        <td>{{ item.nominalValue }}</td>
+        <td>{{ item.nominalValue }} {{item.currency}}</td>
         <td>{{ item.couponRate }} %</td>
         <td class="text-center">
           <v-btn icon="mdi-eye" size="small"
@@ -110,6 +110,29 @@
                       single-line>
         </v-text-field>
         <p class="form-new-bond_title">Vencimiento</p>
+        <div class="d-flex">
+          <v-text-field placeholder="0"
+                        v-model="formNewBonds.expiration"
+                        :rules="oblRule"
+                        type="number"
+                        class="mb-4"
+                        style="max-width: 70%"
+                        density="compact"
+                        variant="contained"
+                        hide-details
+                        single-line>
+          </v-text-field>
+          <v-autocomplete density="compact"
+                          class="mb-4"
+                          style="max-width: 30%"
+                          v-model="formNewBonds.expirationType"
+                          :items="expirationType"
+                          :readonly="true"
+                          variant="contained"
+                          hide-details>
+          </v-autocomplete>
+        </div>
+        <!--
         <v-text-field class="mb-4"
                       v-model="formNewBonds.expiration"
                       :rules="expirationRules"
@@ -119,6 +142,7 @@
                       hide-details
                       single-line>
         </v-text-field>
+        -->
         <p class="form-new-bond_title">Tipo de capitalización</p>
         <v-autocomplete density="compact"
                         class="mb-4"
@@ -191,7 +215,6 @@ export default {
   name: "ListBonos",
   data () {
     return {
-      selected: [],
       headers: [
         { text: 'Codigo', value: 'codigo' },
         { text: 'Nombre', value: 'nombre' },
@@ -201,6 +224,7 @@ export default {
       currency: ['USD', 'PEN'],
       capitalizationType: ['Diario', 'Quincenal', 'Mensual', 'Bimestral', 'Trimestral', 'Semestral', 'Anual'],
       marketType: ['Primario', 'Secundario'],
+      expirationType: ['Dias', 'Meses', 'Años'],
       bonds: [],
       formNewBonds: {
         id: '',
@@ -208,7 +232,8 @@ export default {
         nominalValue: null,
         currency: 'USD',
         couponRate: null,
-        expiration: '',
+        expiration: null,
+        expirationType: 'Años',
         capitalizationType: 'Anual',
         marketType: 'Primario',
         VAN: 0,
@@ -231,6 +256,7 @@ export default {
 
   mounted() {
     this.retrieveBondsByUserId();
+    //TODO: BORRAR OBTENER DÍA
     let date = new Date()
     if (date.getMonth() + 1 < 10)
       this.dateToday = `${date.getFullYear()}-0${date.getMonth() + 1}-${date.getDate()}`;
@@ -252,7 +278,12 @@ export default {
       this.dialogNewBond = true;
     },
     goToComponent(id) {
-      console.log(id);
+      this.$router.push({
+        name: "bonoDetail",
+        params: {
+          id: id,
+        }
+      })
     },
     async createBond() {
       this.$refs.formNewBond.validate();
