@@ -70,6 +70,10 @@ export default {
     valid: true,
   }),
   mounted() {
+    //Se finaliza la sesión cada vez que se ingresa a este componente
+    AuthService.logOut();
+    this.$store.state.user = null;
+    this.$store.state.auth = false;
     console.log(this.$store.state.user);
   },
   methods: {

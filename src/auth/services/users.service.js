@@ -7,7 +7,7 @@ class UsersService {
         return http.get(this.endPoint);
     }
     getByEmail(email) {
-        return http.get(`${this.endPoint}?email_like=${email}`);
+        return http.get(`${this.endPoint}?email=${email}`);
     }
     create(createUserDto) {
         return http.post(`${this.endPoint}`, createUserDto);

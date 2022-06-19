@@ -20,7 +20,7 @@
               :key="index"
               :value="index"
           >
-            <v-list-item-title>{{ item.title }}</v-list-item-title>
+            <v-list-item-title @click="n(index)">{{ item.title }}</v-list-item-title>
           </v-list-item>
         </v-list>
       </v-menu>
@@ -29,6 +29,7 @@
 </template>
 
 <script>
+//import AuthService from '../../auth/services/auth.service'
 export default {
   name: "NavbarBono",
   data: () => ({
@@ -36,8 +37,17 @@ export default {
       { title: 'Mi perfil' },
       { title: 'Configuración'},
       { title: 'Cerrar sesión' },
-    ],
-  })
+    ]
+  }),
+  methods: {
+    n(index) {
+      if (index == 0) console.log("Go to mi perfil")
+      else if (index == 1) console.log("Go to configuración")
+      else {
+        this.$router.push({path: `/auth/sign-in`});
+      }
+    }
+  }
 }
 </script>
 

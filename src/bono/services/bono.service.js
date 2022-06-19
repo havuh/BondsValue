@@ -1,10 +1,13 @@
 import http from '../../core/http-common'
 
 class BonoService {
-    endPoint = 'users';
+    endPoint = 'http://localhost:3000/api/v1/bonds';
 
     getAll() {
         return http.get(this.endPoint);
+    }
+    getAllByUserId(userId) {
+        return http.get(`${this.endPoint}?userId=${userId}`);
     }
     delete(id) {
         return http.delete(`${this.endPoint}/${id}`);
