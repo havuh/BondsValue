@@ -99,20 +99,6 @@
       "userId": "u5"
     },
     {
-      "id": 7,
-      "name": "Prueba real",
-      "nominalValue": 1000,
-      "currency": "USD",
-      "couponRate": 4,
-      "expiration": 5,
-      "expirationType": "Años",
-      "capitalizationType": "Semestral",
-      "marketType": "Primario",
-      "VAN": 0,
-      "TIR": 0,
-      "userId": "u1"
-    },
-    {
       "id": 8,
       "name": "Prueba 2",
       "nominalValue": 2500,
@@ -128,17 +114,17 @@
     },
     {
       "id": 9,
-      "name": "Bono Rogg",
-      "nominalValue": 5200.2,
+      "name": "Excel",
+      "nominalValue": 1000,
       "currency": "USD",
-      "couponRate": 58,
-      "expiration": 6,
+      "couponRate": 4,
+      "expiration": 5,
       "expirationType": "Años",
       "capitalizationType": "Semestral",
       "marketType": "Primario",
       "VAN": 0,
       "TIR": 0,
-      "userId": "u2"
+      "userId": "u1"
     }
   ]
 }

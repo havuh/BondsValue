@@ -5,7 +5,7 @@
         color="#fffcec"
         app
     >
-      <v-app-bar-title class="title">BONDS VALUE</v-app-bar-title>
+      <v-app-bar-title class="title" @click="toHome()">BONDS VALUE</v-app-bar-title>
       <v-menu>
         <template v-slot:activator="{ props }">
           <v-btn
@@ -46,6 +46,9 @@ export default {
       else {
         this.$router.push({path: `/auth/sign-in`});
       }
+    },
+    toHome() {
+      this.$router.push({name: "homeBono"});
     }
   }
 }
@@ -60,6 +63,7 @@ export default {
   color: hsla(0, 100%, 50%, 0.79);
   font-size: 2rem;
   font-weight: bold;
+  cursor: pointer;
 }
 .btn-menu {
   font-weight: bold;

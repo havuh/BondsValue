@@ -18,8 +18,11 @@ class BonoService {
     delete(id) {
         return http.delete(`${this.endPoint}/${id}`);
     }
-    getByName(name) {
-        return http.get(`localhost:3000/users?name_like=${name}`);
+    saveSecondMarket(secondMarket) {
+        localStorage.setItem('secondMarket', JSON.stringify(secondMarket));
+    }
+    removeSecondMarket() {
+        localStorage.removeItem('secondMarket');
     }
 }
 

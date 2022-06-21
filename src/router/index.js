@@ -33,6 +33,14 @@ const routes = [
     },
     component: () => import('../bono/pages/BonoDetail'),
   },
+  {
+    path: '/second-market/:id',
+    name: 'secondMarket',
+    meta: {
+      requiresAuth: true
+    },
+    component: () => import('../bono/pages/SecondMarketDetail'),
+  }
 ]
 
 const router = createRouter({

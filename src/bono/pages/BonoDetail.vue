@@ -5,7 +5,7 @@
     <div class="d-flex justify-space-between mt-5 mb-5">
       <p class="detail-title">{{this.bond.name}}</p>
       <p class="detail-title">Método Americano</p>
-      <v-btn flat class="btn-a">Calcular Mercado Secundario</v-btn>
+      <v-btn flat class="btn-a" @click="openAddSecondMarket()">Calcular Mercado Secundario</v-btn>
     </div>
     <div class="bond-description mb-5">
       <div class="d-flex ml-p">
@@ -76,12 +76,59 @@
 
     <p class="detail-subtitle">Indicadores financieros</p>
     <div class="d-flex justify-space-around">
-      <div class="btn-indicador"><p>TIR: {{this.bond.TIR}}</p></div>
+      <div class="btn-indicador"><p>TIR: {{this.bond.TIR}} %</p></div>
       <div class="btn-indicador"><p>VA: {{this.bondPrice}}</p></div>
       <div class="btn-indicador"
            style="background-color: #90f46c !important;"><p>VAN: {{this.bond.VAN}}</p></div>
     </div>
   </v-container>
+
+  <v-dialog
+      persistent
+      v-model="dialogSecondMarket"
+  >
+    <v-card class="card-new-bond">
+      <div class="title-new-bond">
+        <p class="mt-2" style="font-size: 1.5rem;">Mercado Secundario</p>
+      </div>
+
+      <v-form ref="formSecondMarket" v-model="valid" lazy-validation class="form-new-bond">
+        <p class="form-new-bond_title">Tasa de rendimiento (anual)</p>
+        <v-text-field placeholder="0%"
+                      v-model="formSecondMarket.tasaDeRendimiento"
+                      :rules="oblRule"
+                      type="number"
+                      class="mb-4"
+                      density="compact"
+                      variant="contained"
+                      hide-details
+                      single-line>
+        </v-text-field>
+        <p class="form-new-bond_title">Período de compra</p>
+        <v-text-field placeholder="1"
+                      v-model="formSecondMarket.periodoDeCompra"
+                      :rules="periodoRules"
+                      type="number"
+                      class="mb-4"
+                      density="compact"
+                      variant="contained"
+                      hide-details
+                      single-line>
+        </v-text-field>
+      </v-form>
+      <v-divider></v-divider>
+
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn class="button-can" @click="dialogSecondMarket = false">
+          Cancelar
+        </v-btn>
+        <v-btn class="button-fin text-white" @click="createSecondMarket()">
+          Agregar
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -95,13 +142,28 @@ export default {
     bond: {},
     tasaPeriodica: null,
     bondPrice: null,
+    numberOfPeriods: null,
     cashFlow: {
       periods: [],
       capital: [],
       amortization: [],
       interes: [],
       quota: [],
-    }
+    },
+    formSecondMarket: {
+      tasaDeRendimiento: null,
+      periodoDeCompra: null,
+    },
+    dialogSecondMarket: false,
+    valid: true,
+    oblRule: [
+      v => !!v || 'Campo obligatorio'
+    ],
+    periodoRules: [
+      v => !!v || 'Campo obligatorio',
+        //TODO: VALIDAR PERIODO
+      //v => (v >= 0 && v < this.numberOfPeriods) || 'Periodo de compra invalido'
+    ]
   }),
   mounted() {
     this.id = this.$route.params.id;
@@ -126,29 +188,28 @@ export default {
       this.bond.TIR = this.calculateTIR(this.cashFlow.quota).toFixed(5);
     },
     calculatePeriods() {
-      let numberOfPeriods = null;
       if (this.bond.capitalizationType == "Semestral") {
-        numberOfPeriods = this.bond.expiration * 2;
+        this.numberOfPeriods = this.bond.expiration * 2;
       }
       else if (this.bond.capitalizationType == "Mensual") {
-        numberOfPeriods = this.bond.expiration * 12;
+        this.numberOfPeriods = this.bond.expiration * 12;
       }
       else if (this.bond.capitalizationType == "Bimestral") {
-        numberOfPeriods = this.bond.expiration * 6;
+        this.numberOfPeriods = this.bond.expiration * 6;
       }
       else if (this.bond.capitalizationType == "Anual") {
-        numberOfPeriods = this.bond.expiration;
+        this.numberOfPeriods = this.bond.expiration;
       }
       else if (this.bond.capitalizationType == "Quincenal") {
-        numberOfPeriods = this.bond.expiration * 24;
+        this.numberOfPeriods = this.bond.expiration * 24;
       }
       else if (this.bond.capitalizationType == "Trimestral") {
-        numberOfPeriods = this.bond.expiration * 4;
+        this.numberOfPeriods = this.bond.expiration * 4;
       }
       else {
-        numberOfPeriods = this.bond.expiration * 360;
+        this.numberOfPeriods = this.bond.expiration * 360;
       }
-      for (let i = 0; i <= numberOfPeriods; i++) {
+      for (let i = 0; i <= this.numberOfPeriods; i++) {
         this.cashFlow.periods.push(i);
       }
     },
@@ -264,6 +325,23 @@ export default {
     sign(x) {
       return x < 0.0 ? -1 : 1;
     },
+    openAddSecondMarket() {
+      this.dialogSecondMarket = true;
+    },
+    createSecondMarket() {
+      this.$refs.formSecondMarket.validate();
+      if(this.valid) {
+        this.dialogSecondMarket = false;
+        this.$store.state.secondMarket.tasaPeriodica = this.tasaPeriodica;
+        this.$store.state.secondMarket.bondPrice = this.bondPrice;
+        this.$store.state.secondMarket.numberOfPeriods = this.numberOfPeriods;
+        this.$store.state.secondMarket.cashFlow = this.cashFlow;
+        this.$store.state.secondMarket.formSecondMarket = this.formSecondMarket;
+        this.$store.state.secondMarket.bond = this.bond;
+        BonoService.saveSecondMarket(this.$store.state.secondMarket);
+        this.$router.push({ name: "secondMarket", params: {id: this.id}});
+      }
+    }
   }
 }
 </script>
@@ -321,5 +399,37 @@ tr {
 }
 .btn-indicador p {
   font-size: 1.4rem;
+}
+.card-new-bond {
+  border-radius: 18px !important;
+}
+.title-new-bond {
+  font-weight: bold;
+  color: #fff;
+  text-align: center;
+  background-color: #90f46c;
+  height: 40px;
+}
+.form-new-bond {
+  width: 280px;
+  margin: 25px 35px 0px 35px;
+}
+.form-new-bond_title {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+.button-can {
+  font-size: 1rem;
+  border-radius: 10px;
+  border: 1px #e6e8e8 solid;
+  width: 70px;
+}
+.button-fin {
+  font-size: 1rem;
+  background-color: #90f46c;
+  border-radius: 10px;
+  margin-right: 30px;
+  font-weight: bold;
+  width: 70px;
 }
 </style>
