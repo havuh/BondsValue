@@ -52,6 +52,10 @@
       </tr>
       </tbody>
     </v-table>
+
+    <h1 v-if="bonds.length == 0"
+        class="text-center mt-10">No hay bonos disponibles. Click en "Agregar" para crear uno</h1>
+
   </v-container>
 
   <!--Form new bond-->
@@ -291,7 +295,7 @@ export default {
         //TODO: mostrar errores en el formulario
         await BonoService.getAll()
             .then(response => {
-              this.formNewBonds.id = response.data.length + 1;
+              this.formNewBonds.id = response.data[response.data.length - 1].id + 1;
               BonoService.create(this.formNewBonds).then(response => {
                 if(response.status == 201) {
                   this.dialogNewBond = false;

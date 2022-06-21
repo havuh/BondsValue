@@ -15,8 +15,7 @@
       </div>
       <div class="d-flex ml-p">
         <span><b>Capitalización:</b> {{this.bond.capitalizationType}}</span>
-        <span><b>Tasa cupón periodica:</b> Tasa periodica %</span>
-        <span><b>Periodos convertidos:</b> Numero nuevos periodos</span>
+        <span><b>Tasa cupón periodica:</b> {{tasaPeriodica}} %</span>
       </div>
     </div>
     <p class="detail-subtitle">Flujo de caja</p>
@@ -27,7 +26,7 @@
       <tr>
         <th style="background-color: #fff;"></th>
         <th
-            v-for="(item, index) in periods"
+            v-for="(item, index) in this.cashFlow.periods"
             :key="index"
             class="text-white"
         >
@@ -39,37 +38,37 @@
       <tr>
         <td>Capital</td>
         <td
-            v-for="(item, index) in periods"
+            v-for="(item, index) in this.cashFlow.periods"
             :key="index"
         >
-          {{capital}}
+          {{this.cashFlow.capital[index]}}
         </td>
       </tr>
       <tr>
         <td>Amortización</td>
         <td
-            v-for="(item, index) in periods"
+            v-for="(item, index) in this.cashFlow.periods"
             :key="index"
         >
-          {{amortization}}
+          {{this.cashFlow.amortization[index]}}
         </td>
       </tr>
       <tr>
         <td>Intereses</td>
         <td
-            v-for="(item, index) in periods"
+            v-for="(item, index) in this.cashFlow.periods"
             :key="index"
         >
-          {{interes}}
+          {{this.cashFlow.interes[index]}}
         </td>
       </tr>
       <tr>
         <td>Cuota</td>
         <td
-            v-for="(item, index) in periods"
+            v-for="(item, index) in this.cashFlow.periods"
             :key="index"
         >
-          {{quota}}
+          {{this.cashFlow.quota[index]}}
         </td>
       </tr>
       </tbody>
@@ -77,10 +76,10 @@
 
     <p class="detail-subtitle">Indicadores financieros</p>
     <div class="d-flex justify-space-around">
-      <div class="btn-indicador"><p>TIR: TIR CALCULADO</p></div>
-      <div class="btn-indicador"><p>VA: VA</p></div>
+      <div class="btn-indicador"><p>TIR: {{this.bond.TIR}}</p></div>
+      <div class="btn-indicador"><p>VA: {{this.bondPrice}}</p></div>
       <div class="btn-indicador"
-           style="background-color: #90f46c !important;"><p>VAN: VAN</p></div>
+           style="background-color: #90f46c !important;"><p>VAN: {{this.bond.VAN}}</p></div>
     </div>
   </v-container>
 </template>
@@ -94,11 +93,15 @@ export default {
   data: () => ({
     id: null,
     bond: {},
-    periods: [0,1,2,3,4,5],
-    capital: 0,
-    amortization: 0,
-    interes: 0,
-    quota: 0,
+    tasaPeriodica: null,
+    bondPrice: null,
+    cashFlow: {
+      periods: [],
+      capital: [],
+      amortization: [],
+      interes: [],
+      quota: [],
+    }
   }),
   mounted() {
     this.id = this.$route.params.id;
@@ -109,11 +112,158 @@ export default {
       BonoService.getById(id)
           .then(response => {
             this.bond = response.data;
-            this.capital = this.bond.nominalValue;
+            this.calculateBond();
           }).catch(error => {
             this.errors.push(error);
       })
-    }
+    },
+    calculateBond() {
+      this.calculatePeriods();
+      this.calculateValuation();
+      this.calculateCashFlow();
+      this.calculateBondPrice();
+      this.calculateVAN();
+      this.bond.TIR = this.calculateTIR(this.cashFlow.quota).toFixed(5);
+    },
+    calculatePeriods() {
+      let numberOfPeriods = null;
+      if (this.bond.capitalizationType == "Semestral") {
+        numberOfPeriods = this.bond.expiration * 2;
+      }
+      else if (this.bond.capitalizationType == "Mensual") {
+        numberOfPeriods = this.bond.expiration * 12;
+      }
+      else if (this.bond.capitalizationType == "Bimestral") {
+        numberOfPeriods = this.bond.expiration * 6;
+      }
+      else if (this.bond.capitalizationType == "Anual") {
+        numberOfPeriods = this.bond.expiration;
+      }
+      else if (this.bond.capitalizationType == "Quincenal") {
+        numberOfPeriods = this.bond.expiration * 24;
+      }
+      else if (this.bond.capitalizationType == "Trimestral") {
+        numberOfPeriods = this.bond.expiration * 4;
+      }
+      else {
+        numberOfPeriods = this.bond.expiration * 360;
+      }
+      for (let i = 0; i <= numberOfPeriods; i++) {
+        this.cashFlow.periods.push(i);
+      }
+    },
+    calculateValuation() {
+      if (this.bond.capitalizationType == "Semestral") {
+        this.tasaPeriodica = this.bond.couponRate/2;
+      }
+      else if (this.bond.capitalizationType == "Mensual") {
+        this.tasaPeriodica = this.bond.couponRate/12;
+      }
+      else if (this.bond.capitalizationType == "Bimestral") {
+        this.tasaPeriodica = this.bond.couponRate/6;
+      }
+      else if (this.bond.capitalizationType == "Anual") {
+        this.tasaPeriodica = this.bond.couponRate/1;
+      }
+      else if (this.bond.capitalizationType == "Quincenal") {
+        this.tasaPeriodica = this.bond.couponRate/24;
+      }
+      else if (this.bond.capitalizationType == "Trimestral") {
+        this.tasaPeriodica = this.bond.couponRate/4;
+      }
+      else {
+        this.tasaPeriodica = this.bond.couponRate/360;
+      }
+    },
+    calculateCashFlow() {
+      let interes = this.bond.nominalValue * this.tasaPeriodica/100;
+      let p = this.cashFlow.periods.length;
+
+      for(let i = 0; i < p; i++) {
+        this.cashFlow.capital.push(this.bond.nominalValue);
+        this.cashFlow.amortization.push(0);
+        this.cashFlow.interes.push(interes);
+      }
+      this.cashFlow.capital[p - 1] = 0;
+      this.cashFlow.amortization[p - 1] = this.bond.nominalValue;
+      this.cashFlow.amortization[0] = null;
+      this.cashFlow.interes[0] = null;
+
+      for(let i = 0; i < p; i++) {
+        if (i == 0) this.cashFlow.quota.push(this.bond.nominalValue * -1);
+        else this.cashFlow.quota.push(this.cashFlow.interes[i] + this.cashFlow.amortization[i]);
+      }
+    },
+    calculateBondPrice() {
+      for (let i = 0; i < this.cashFlow.periods.length; i++) {
+        if (i > 0) {
+          this.bondPrice = this.bondPrice + (this.cashFlow.quota[i]/(Math.pow(1 + this.tasaPeriodica/100, i)));
+        }
+      }
+      this.bondPrice = this.bondPrice.toFixed(5);
+    },
+    calculateVAN() {
+      for (let i = 0; i < this.cashFlow.periods.length; i++) {
+        if (i > 0) {
+          this.bond.VAN = this.bond.VAN + (this.cashFlow.quota[i]/(Math.pow(1 + this.tasaPeriodica/100, i)));
+        }
+      }
+      this.bond.VAN = this.bond.VAN.toFixed(5);
+      this.bond.VAN = this.bond.VAN - this.bond.nominalValue;
+    },
+    calculateTIR(periods) {
+      let ret = -1000000000.0;
+      let interesInicial = -1.0;
+      let interesMedio = 0.0;
+      let interesFinal = 1.0;
+      let vpl_inicial = 0.0;
+      let vpl_final = 0.0;
+      let err = 1e-5;
+
+      for (let i=0; i<100; i++) {
+        vpl_inicial = this.vpl(interesInicial, periods);
+        vpl_final = this.vpl(interesFinal, periods);
+        if (this.sign(vpl_inicial) != this.sign(vpl_final))
+          break;
+        interesInicial -= 1.0;
+        interesFinal += 1.0;
+      }
+
+      let count = 0;
+      for (;;) {
+        // Buscar bisección
+        interesMedio = (interesInicial + interesFinal) / 2.0;
+        let vpl_medio = this.vpl(interesMedio, periods)
+
+        if (Math.abs(vpl_medio) <= err) {
+          // Resultado
+          return interesMedio*100.0;
+        }
+
+        if (this.sign(vpl_inicial) == this.sign(vpl_medio)) {
+          interesInicial = interesMedio;
+          vpl_inicial = this.vpl(interesMedio, periods);
+        } else {
+          interesFinal = interesMedio;
+          vpl_final = this.vpl(interesMedio, periods);
+        }
+
+        if (++count > 10000) throw "looping invalid";
+      }
+
+      // eslint-disable-next-line
+      return ret;
+    },
+    vpl(valuation, periods) {
+      let ret = periods[0];
+
+      for (let i=1; i<periods.length; i++)
+        ret += periods[i] / Math.pow( (1.0 + valuation), i);
+      return ret;
+    },
+    sign(x) {
+      return x < 0.0 ? -1 : 1;
+    },
   }
 }
 </script>
