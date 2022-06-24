@@ -44,8 +44,9 @@
         <td class="text-center">
           <v-btn icon="mdi-eye" size="small"
                  color="primary" class="mr-2" @click="goToComponent(item.id)"></v-btn>
+          <!--
           <v-btn icon="mdi-pencil" size="small"
-                 color="primary" class="mr-2"></v-btn>
+                 color="primary" class="mr-2"></v-btn> -->
           <v-btn icon="mdi-delete" size="small"
                  color="warning" @click="goToDeleteComponent(index)"></v-btn>
         </td>
@@ -86,7 +87,7 @@
                         :rules="oblRule"
                         type="number"
                         class="mb-4"
-                        style="max-width: 70%"
+                        style="max-width: 60%"
                         density="compact"
                         variant="contained"
                         hide-details
@@ -94,7 +95,7 @@
           </v-text-field>
           <v-autocomplete density="compact"
                           class="mb-4"
-                          style="max-width: 30%"
+                          style="max-width: 40%"
                           v-model="formNewBonds.currency"
                           :items="currency"
                           :readonly="true"
@@ -225,16 +226,16 @@ export default {
         { text: 'Valor nominal', value: 'valorN' },
         { text: 'Tasa de cupón (%)', value: 'tasa' }
       ],
-      currency: ['USD', 'PEN'],
+      currency: ['PEN S/', 'USD $', 'EUR €', 'JPY ¥'],
       capitalizationType: ['Diario', 'Quincenal', 'Mensual', 'Bimestral', 'Trimestral', 'Semestral', 'Anual'],
-      marketType: ['Primario', 'Secundario'],
-      expirationType: ['Dias', 'Meses', 'Años'],
+      marketType: ['Primario'],
+      expirationType: ['Dias', 'Quincenas', 'Meses', 'Bimestres', 'Trimestres', 'Semestres', 'Años'],
       bonds: [],
       formNewBonds: {
         id: '',
         name: '',
         nominalValue: null,
-        currency: 'USD',
+        currency: 'USD $',
         couponRate: null,
         expiration: null,
         expirationType: 'Años',

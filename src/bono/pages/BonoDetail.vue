@@ -10,17 +10,17 @@
     <div class="bond-description mb-5">
       <div class="d-flex ml-p">
         <span><b>Valor nominal:</b> {{this.bond.nominalValue}} {{this.bond.currency}}</span>
-        <span><b>Vencimiento:</b> {{this.bond.expiration}} {{this.bond.expirationType}}</span>
-        <span><b>Tasa cupón:</b> {{this.bond.couponRate}}%</span>
+        <span><b>Vencimiento:</b> {{this.expirationM}} {{this.bond.expirationType}}</span>
+        <span><b>Tasa cupón:</b> {{this.bond.couponRate}} %</span>
       </div>
       <div class="d-flex ml-p">
         <span><b>Capitalización:</b> {{this.bond.capitalizationType}}</span>
-        <span><b>Tasa cupón periodica:</b> {{tasaPeriodica}} %</span>
+        <span><b>Tasa cupón periodica:</b> {{tasaPeriodica}} % {{this.bond.capitalizationType}}</span>
       </div>
     </div>
     <p class="detail-subtitle">Flujo de caja</p>
 
-    <!--TODO: FLUJO DE CAJA-->
+    <!--Flujo de caja-->
     <table class="table-style mt-5 mb-10">
       <thead style="background-color: #5024fc">
       <tr>
@@ -143,6 +143,7 @@ export default {
     tasaPeriodica: null,
     bondPrice: null,
     numberOfPeriods: null,
+    expirationM: null,
     cashFlow: {
       periods: [],
       capital: [],
@@ -167,7 +168,12 @@ export default {
   }),
   mounted() {
     this.id = this.$route.params.id;
-    this.retrieveBondInformation(this.id);
+    if (this.$store.state.auth == false) {
+      this.$router.push({path: `/auth/sign-in`});
+    }
+    else {
+      this.retrieveBondInformation(this.id);
+    }
   },
   methods: {
     retrieveBondInformation(id) {
@@ -188,6 +194,30 @@ export default {
       this.bond.TIR = this.calculateTIR(this.cashFlow.quota).toFixed(5);
     },
     calculatePeriods() {
+      this.expirationM = this.bond.expiration;
+
+      if (this.bond.expirationType == "Semestres") {
+        this.bond.expiration = this.bond.expiration / 2;
+      }
+      else if (this.bond.expirationType == "Meses") {
+        this.bond.expiration = this.bond.expiration / 12;
+      }
+      else if (this.bond.expirationType == "Bimestres") {
+        this.bond.expiration = this.bond.expiration / 6;
+      }
+      else if (this.bond.expirationType == "Años") {
+        this.bond.expiration = this.bond.expiration * 1;
+      }
+      else if (this.bond.expirationType == "Quincenas") {
+        this.bond.expiration = this.bond.expiration / 24;
+      }
+      else if (this.bond.expirationType == "Trimestres") {
+        this.bond.expiration = this.bond.expiration / 4;
+      }
+      else {
+        this.numberOfPeriods = this.bond.expiration / 360;
+      }
+
       if (this.bond.capitalizationType == "Semestral") {
         this.numberOfPeriods = this.bond.expiration * 2;
       }

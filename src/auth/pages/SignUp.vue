@@ -92,7 +92,12 @@ export default {
     valid: true,
   }),
   mounted() {
-    console.log(this.$store.state.user);
+    if (this.$store.state.auth == true) {
+      this.$router.push({path: `/home-bono`});
+    }
+    else {
+      console.log(this.$store.state.user);
+    }
   },
   methods: {
     goToSignIn(){

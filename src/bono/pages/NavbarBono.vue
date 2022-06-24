@@ -35,14 +35,14 @@ export default {
   data: () => ({
     items: [
       { title: 'Mi perfil' },
-      { title: 'Configuración'},
+    //{ title: 'Ayuda'},
       { title: 'Cerrar sesión' },
     ],
   }),
   methods: {
     n(index) {
       if (index == 0) console.log("Go to mi perfil")
-      else if (index == 1) console.log("Go to configuración")
+    //else if (index == 1) this.$router.push({path: `/help`});
       else {
         this.$router.push({path: `/auth/sign-in`});
       }

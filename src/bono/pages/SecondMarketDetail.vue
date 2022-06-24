@@ -13,8 +13,8 @@
       </div>
       <div class="d-flex">
         <span><b>Duración (años):</b> {{duration}}</span>
-        <span><b>Duración modificada:</b> </span>
-        <span><b>Convexidad:</b> </span>
+        <span><b>Duración modificada:</b> {{modifiedDuration}} </span>
+        <span><b>Convexidad: </b> {{convexidad}} </span>
       </div>
     </div>
     <p class="subtitle">Flujo de caja</p>
@@ -46,7 +46,6 @@
     <p class="subtitle">Indicadores financieros</p>
     <div class="d-flex justify-space-around">
       <div class="btn-indicador"><p>TIR: {{this.newTIR}} %</p></div>
-      <div class="btn-indicador"><p>VA: {{this.bondPrice}}</p></div>
       <div class="btn-indicador"
            style="background-color: #90f46c !important;"><p>VAN: {{this.newVAN}}</p></div>
     </div>
@@ -67,17 +66,24 @@ export default {
     bond: {},
     durationS: null,
     duration: null,
+    modifiedDuration: null,
     newBondValue: null,
     newTasaP: null,
     newTIR: null,
     newVAN: null,
+    convexidad: null,
     secondMarket: null,
   }),
   mounted() {
-    this.secondMarket = JSON.parse(localStorage.getItem('secondMarket'));
-    this.id = this.$route.params.id;
-    this.bond = this.secondMarket.bond;
-    this.calculateSecondMarket();
+    if (this.$store.state.auth == false) {
+      this.$router.push({path: `/auth/sign-in`});
+    }
+    else {
+      this.secondMarket = JSON.parse(localStorage.getItem('secondMarket'));
+      this.id = this.$route.params.id;
+      this.bond = this.secondMarket.bond;
+      this.calculateSecondMarket();
+    }
   },
   methods: {
     calculateSecondMarket() {
@@ -86,7 +92,9 @@ export default {
       this.calculateNewBondValue();
       this.calculateDuration();
       this.newTIR = this.calculateTIR(this.newCashFlow.quota);
+      this.calculateModifiedDuration();
       this.calculateVAN();
+      this.calculateConvexidad();
       this.results();
     },
     calculateNewTasaP() {
@@ -219,6 +227,9 @@ export default {
     sign(x) {
       return x < 0.0 ? -1 : 1;
     },
+    calculateModifiedDuration() {
+      this.modifiedDuration = this.durationS / (1 + this.newTIR/100);
+    },
     calculateVAN() {
       let compra = this.secondMarket.formSecondMarket.periodoDeCompra;
       for(let i = 0; i < this.newCashFlow.periods.length; i++) {
@@ -229,13 +240,30 @@ export default {
       }
       this.newVAN = this.newVAN - this.newBondValue;
     },
+    calculateConvexidad() {
+      let compra = this.secondMarket.formSecondMarket.periodoDeCompra;
+      let parc1 = 0;
+      let x = 0;
+      let parc2 = 0;
+      for(let i = 0; i < this.newCashFlow.periods.length; i++) {
+        if (i > 0) {
+          x = this.secondMarket.cashFlow.quota[compra + i]/Math.pow((1 + this.newTasaP),i);
+          parc1 = parc1 + x;
+          parc2 = parc2 + x * (Math.pow(i,2)+i)/Math.pow((1+this.newTasaP),i);
+        }
+      }
+      this.convexidad = (1/(parc1*Math.pow(1 + this.newTasaP,2)))*parc2;
+
+    },
     results() {
       this.newTasaP = (this.newTasaP * 100).toFixed(5);
-      this.duration = this.duration.toFixed(2);
-      this.durationS = this.durationS.toFixed(2);
+      this.duration = this.duration.toFixed(3);
+      this.durationS = this.durationS.toFixed(3);
+      this.modifiedDuration = this.modifiedDuration.toFixed(3);
       this.newBondValue = this.newBondValue.toFixed(2);
       this.newTIR = this.newTIR.toFixed(5);
       this.newVAN = this.newVAN.toFixed(5);
+      this.convexidad = this.convexidad.toFixed(5);
     }
   }
 }

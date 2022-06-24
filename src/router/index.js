@@ -13,6 +13,11 @@ const routes = [
     component: () => import('../auth/pages/SignIn'),
   },
   {
+    path: '/help',
+    name: 'Help',
+    component: () => import('../help/pages/UserHelp'),
+  },
+  {
     path: '/auth/sign-up',
     name: 'signUp',
     component: () => import('../auth/pages/SignUp'),
