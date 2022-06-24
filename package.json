@@ -30,7 +30,12 @@
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3",
     "vue-cli-plugin-vuetify": "~2.5.1",
-    "webpack-plugin-vuetify": "^2.0.0-alpha.0"
+    "webpack-plugin-vuetify": "^2.0.0-alpha.0",
+    "error-stack-parser": "2.0.6"
+  },
+  "resolutions": {
+    "error-stack-parser": "2.0.6",
+    "stackframe": "1.2.1"
   },
   "eslintConfig": {
     "root": true,
