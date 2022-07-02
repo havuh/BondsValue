@@ -1,7 +1,7 @@
 import http from '../../core/http-common'
 
 class BonoService {
-    endPoint = 'https://bonds-value-api.herokuapp.com/bonds';
+    endPoint = 'http://localhost:3000/api/v1/bonds';
 
     getAll() {
         return http.get(this.endPoint);

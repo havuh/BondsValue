@@ -84,7 +84,7 @@
         <div class="d-flex">
           <v-text-field placeholder="10000"
                         v-model="formNewBonds.nominalValue"
-                        :rules="oblRule"
+                        :rules="oblRuleNum"
                         type="number"
                         class="mb-4"
                         style="max-width: 60%"
@@ -103,22 +103,57 @@
                           hide-details>
           </v-autocomplete>
         </div>
-        <p class="form-new-bond_title">Tasa cupón (anual)</p>
-        <v-text-field placeholder="2%"
-                      v-model="formNewBonds.couponRate"
-                      :rules="oblRule"
-                      type="number"
-                      class="mb-4"
-                      density="compact"
-                      variant="contained"
-                      hide-details
-                      single-line>
-        </v-text-field>
+        <p class="form-new-bond_title">Tasa cupón anual</p>
+        <div class="d-flex">
+          <v-text-field placeholder="0%"
+                        v-model="formNewBonds.couponRate"
+                        :rules="oblRuleNum"
+                        type="number"
+                        class="mb-4"
+                        style="max-width: 70%"
+                        density="compact"
+                        variant="contained"
+                        hide-details
+                        single-line>
+          </v-text-field>
+          <v-autocomplete density="compact"
+                          class="mb-4"
+                          style="max-width: 30%"
+                          v-model="formNewBonds.couponRateType"
+                          :items="couponRateType"
+                          :readonly="true"
+                          variant="contained"
+                          hide-details>
+          </v-autocomplete>
+        </div>
+        <p class="form-new-bond_title">Costo de oportunidad anual (opcional)</p>
+        <div class="d-flex">
+          <v-text-field placeholder="0%"
+                        v-model="formNewBonds.costoOportunidad"
+                        :rules="ruleNum"
+                        type="number"
+                        class="mb-4"
+                        style="max-width: 70%"
+                        density="compact"
+                        variant="contained"
+                        hide-details
+                        single-line>
+          </v-text-field>
+          <v-autocomplete density="compact"
+                          class="mb-4"
+                          style="max-width: 30%"
+                          v-model="formNewBonds.costoOportunidadType"
+                          :items="couponRateType"
+                          :readonly="true"
+                          variant="contained"
+                          hide-details>
+          </v-autocomplete>
+        </div>
         <p class="form-new-bond_title">Vencimiento</p>
         <div class="d-flex">
           <v-text-field placeholder="0"
                         v-model="formNewBonds.expiration"
-                        :rules="oblRule"
+                        :rules="oblRuleNum"
                         type="number"
                         class="mb-4"
                         style="max-width: 70%"
@@ -229,14 +264,20 @@ export default {
       currency: ['PEN S/', 'USD $', 'EUR €', 'JPY ¥'],
       capitalizationType: ['Diario', 'Quincenal', 'Mensual', 'Bimestral', 'Trimestral', 'Semestral', 'Anual'],
       marketType: ['Primario'],
+      couponRateType: ['Nominal', 'Efectiva'],
       expirationType: ['Dias', 'Quincenas', 'Meses', 'Bimestres', 'Trimestres', 'Semestres', 'Años'],
+
       bonds: [],
+
       formNewBonds: {
         id: '',
         name: '',
         nominalValue: null,
         currency: 'USD $',
         couponRate: null,
+        couponRateType: 'Efectiva',
+        costoOportunidad: null,
+        costoOportunidadType: 'Efectiva',
         expiration: null,
         expirationType: 'Años',
         capitalizationType: 'Anual',
@@ -245,13 +286,23 @@ export default {
         TIR: 0,
         userId: this.$store.state.user.id
       },
+
       dialogNewBond: false,
       deleteBondItem: {},
       dialogDeleteBond: false,
+
       valid: true,
       dateToday: null,
+
       oblRule: [
           v => !!v || 'Campo obligatorio'
+      ],
+      oblRuleNum: [
+        v => !!v || 'Campo obligatorio',
+        v => (v >= 0) || 'Este campo no puede tomar valores negativos',
+      ],
+      ruleNum: [
+        v => (v >= 0) || 'Este campo no puede tomar valores negativos'
       ],
       expirationRules: [
           v => (this.dateToday < v) || 'Fecha no válida'
@@ -297,6 +348,7 @@ export default {
         await BonoService.getAll()
             .then(response => {
               this.formNewBonds.id = response.data[response.data.length - 1].id + 1;
+              if (this.formNewBonds.costoOportunidad == null) this.formNewBonds.costoOportunidad = "";
               BonoService.create(this.formNewBonds).then(response => {
                 if(response.status == 201) {
                   this.dialogNewBond = false;
