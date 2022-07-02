@@ -1,7 +1,7 @@
 import http from '../../core/http-common'
 
 class UsersService {
-    endPoint = 'http://localhost:3000/api/v1/users';
+    endPoint = 'https://bonds-value-api.herokuapp.com/users';
 
     getAll() {
         return http.get(this.endPoint);
