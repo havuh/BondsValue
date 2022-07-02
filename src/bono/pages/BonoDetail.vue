@@ -184,7 +184,7 @@ export default {
     periodoRules: [
       v => !!v || 'Campo obligatorio',
         //TODO: VALIDAR PERIODO
-      v => (v >= 0 && v < this.numberOfPeriods) || 'Periodo de compra invalido'
+      v => (v >= 0) || 'Periodo de compra invalido'
     ]
   }),
   mounted() {
