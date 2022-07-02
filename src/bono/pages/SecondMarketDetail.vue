@@ -87,7 +87,7 @@ export default {
   },
   methods: {
     calculateSecondMarket() {
-      this.calculateNewTasaP();
+      this.calculateNewTasaPm();
       this.calculateSecondMarketPeriods();
       this.calculateNewBondValue();
       this.calculateDuration();
@@ -97,6 +97,30 @@ export default {
       this.calculateConvexidad();
       this.results();
     },
+    calculateNewTasaPm() {
+      let type = this.secondMarket.bond.capitalizationType;
+      let r = this.secondMarket.formSecondMarket.tasaDeRendimiento;
+      if (this.secondMarket.formSecondMarket.tasaDeRendimientoType == "Nominal") {
+        if (type == "Semestral") { this.newTasaP = r/200; }
+        else if (type == "Mensual") { this.newTasaP = r/1200; }
+        else if (type == "Bimestral") { this.newTasaP = r/600; }
+        else if (type == "Anual") { this.newTasaP = r/100; }
+        else if (type == "Quincenal") { this.newTasaP = r/2400; }
+        else if (type == "Trimestral") { this.newTasaP = r/400; }
+        else { this.newTasaP = r/36000; }
+
+      }
+      else {
+        if (type == "Semestral") { this.newTasaP = Math.pow(r/100 + 1, 1/2) - 1; }
+        else if (type == "Mensual") { this.newTasaP = Math.pow(r/100 + 1, 1/12) - 1; }
+        else if (type == "Bimestral") { this.newTasaP = Math.pow(r/100 + 1, 1/6) - 1; }
+        else if (type == "Anual") { this.newTasaP = Math.pow(r/100 + 1, 1) - 1; }
+        else if (type == "Quincenal") { this.newTasaP = Math.pow(r/100 + 1, 1/24) - 1; }
+        else if (type == "Trimestral") { this.newTasaP = Math.pow(r/100 + 1, 1/4) - 1; }
+        else { this.newTasaP = Math.pow(r/100 + 1, 1/360) - 1; }
+      }
+    },
+
     calculateNewTasaP() {
       let type = this.secondMarket.bond.capitalizationType;
       let r = this.secondMarket.formSecondMarket.tasaDeRendimiento;

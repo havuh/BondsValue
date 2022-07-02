@@ -11,11 +11,17 @@
       <div class="d-flex ml-p">
         <span><b>Valor nominal:</b> {{this.bond.nominalValue}} {{this.bond.currency}}</span>
         <span><b>Vencimiento:</b> {{this.expirationM}} {{this.bond.expirationType}}</span>
-        <span><b>Tasa cupón:</b> {{this.bond.couponRate}} %</span>
+        <span><b>Tasa cupón {{this.bond.couponRateType}} anual:</b> {{this.bond.couponRate}} %</span>
       </div>
       <div class="d-flex ml-p">
         <span><b>Capitalización:</b> {{this.bond.capitalizationType}}</span>
-        <span><b>Tasa cupón periodica:</b> {{tasaPeriodica}} % {{this.bond.capitalizationType}}</span>
+        <span><b>Tasa cupón efectiva periodica (TEP):</b> {{tasaPeriodica}} % {{this.bond.capitalizationType}}</span>
+        <span><b>Costo de oportunidad periodica (TEP): </b>
+          <span v-if="this.bond.costoOportunidad == ''">No asignado</span>
+          <span v-if="this.bond.costoOportunidad != ''">
+            {{costoPeriodica}} % {{this.bond.capitalizationType}}
+          </span>
+        </span>
       </div>
     </div>
     <p class="detail-subtitle">Flujo de caja</p>
@@ -94,16 +100,27 @@
 
       <v-form ref="formSecondMarket" v-model="valid" lazy-validation class="form-new-bond">
         <p class="form-new-bond_title">Tasa de rendimiento (anual)</p>
-        <v-text-field placeholder="0%"
-                      v-model="formSecondMarket.tasaDeRendimiento"
-                      :rules="oblRule"
-                      type="number"
-                      class="mb-4"
-                      density="compact"
-                      variant="contained"
-                      hide-details
-                      single-line>
-        </v-text-field>
+        <div class="d-flex">
+          <v-text-field placeholder="0%"
+                        v-model="formSecondMarket.tasaDeRendimiento"
+                        :rules="oblRuleNum"
+                        type="number"
+                        class="mb-4"
+                        density="compact"
+                        variant="contained"
+                        hide-details
+                        single-line>
+          </v-text-field>
+          <v-autocomplete density="compact"
+                          class="mb-4"
+                          style="max-width: 30%"
+                          v-model="formSecondMarket.tasaDeRendimientoType"
+                          :items="couponRateType"
+                          :readonly="true"
+                          variant="contained"
+                          hide-details>
+          </v-autocomplete>
+        </div>
         <p class="form-new-bond_title">Período de compra</p>
         <v-text-field placeholder="1"
                       v-model="formSecondMarket.periodoDeCompra"
@@ -141,9 +158,11 @@ export default {
     id: null,
     bond: {},
     tasaPeriodica: null,
+    costoPeriodica: null,
     bondPrice: null,
     numberOfPeriods: null,
     expirationM: null,
+    couponRateType: ['Nominal', 'Efectiva'],
     cashFlow: {
       periods: [],
       capital: [],
@@ -153,17 +172,19 @@ export default {
     },
     formSecondMarket: {
       tasaDeRendimiento: null,
+      tasaDeRendimientoType: "Efectiva",
       periodoDeCompra: null,
     },
     dialogSecondMarket: false,
     valid: true,
-    oblRule: [
-      v => !!v || 'Campo obligatorio'
+    oblRuleNum: [
+      v => !!v || 'Campo obligatorio',
+      v => (v >= 0) || 'Este campo no puede tomar valores negativos'
     ],
     periodoRules: [
       v => !!v || 'Campo obligatorio',
         //TODO: VALIDAR PERIODO
-      //v => (v >= 0 && v < this.numberOfPeriods) || 'Periodo de compra invalido'
+      v => (v >= 0 && v < this.numberOfPeriods) || 'Periodo de compra invalido'
     ]
   }),
   mounted() {
@@ -188,10 +209,12 @@ export default {
     calculateBond() {
       this.calculatePeriods();
       this.calculateValuation();
+      this.calculateOportunidad();
       this.calculateCashFlow();
       this.calculateBondPrice();
       this.calculateVAN();
       this.bond.TIR = this.calculateTIR(this.cashFlow.quota).toFixed(5);
+      this.results();
     },
     calculatePeriods() {
       this.expirationM = this.bond.expiration;
@@ -244,26 +267,43 @@ export default {
       }
     },
     calculateValuation() {
-      if (this.bond.capitalizationType == "Semestral") {
-        this.tasaPeriodica = this.bond.couponRate/2;
-      }
-      else if (this.bond.capitalizationType == "Mensual") {
-        this.tasaPeriodica = this.bond.couponRate/12;
-      }
-      else if (this.bond.capitalizationType == "Bimestral") {
-        this.tasaPeriodica = this.bond.couponRate/6;
-      }
-      else if (this.bond.capitalizationType == "Anual") {
-        this.tasaPeriodica = this.bond.couponRate/1;
-      }
-      else if (this.bond.capitalizationType == "Quincenal") {
-        this.tasaPeriodica = this.bond.couponRate/24;
-      }
-      else if (this.bond.capitalizationType == "Trimestral") {
-        this.tasaPeriodica = this.bond.couponRate/4;
+      if (this.bond.couponRateType == "Nominal") {
+        if (this.bond.capitalizationType == "Semestral") { this.tasaPeriodica = this.bond.couponRate/2; }
+        else if (this.bond.capitalizationType == "Mensual") { this.tasaPeriodica = this.bond.couponRate/12; }
+        else if (this.bond.capitalizationType == "Bimestral") { this.tasaPeriodica = this.bond.couponRate/6; }
+        else if (this.bond.capitalizationType == "Anual") { this.tasaPeriodica = this.bond.couponRate/1; }
+        else if (this.bond.capitalizationType == "Quincenal") { this.tasaPeriodica = this.bond.couponRate/24; }
+        else if (this.bond.capitalizationType == "Trimestral") { this.tasaPeriodica = this.bond.couponRate/4; }
+        else { this.tasaPeriodica = this.bond.couponRate/360; }
       }
       else {
-        this.tasaPeriodica = this.bond.couponRate/360;
+        if (this.bond.capitalizationType == "Semestral") { this.tasaPeriodica = Math.pow((1 + this.bond.couponRate),1/2) - 1; }
+        else if (this.bond.capitalizationType == "Mensual") { this.tasaPeriodica = Math.pow((1 + this.bond.couponRate),1/12) - 1; }
+        else if (this.bond.capitalizationType == "Bimestral") { this.tasaPeriodica = Math.pow((1 + this.bond.couponRate),1/6) - 1; }
+        else if (this.bond.capitalizationType == "Anual") { this.tasaPeriodica = this.bond.couponRate; }
+        else if (this.bond.capitalizationType == "Quincenal") { this.tasaPeriodica = Math.pow((1 + this.bond.couponRate),1/24) - 1; }
+        else if (this.bond.capitalizationType == "Trimestral") { this.tasaPeriodica = Math.pow((1 + this.bond.couponRate),1/4) - 1; }
+        else { this.tasaPeriodica = Math.pow((1 + this.bond.couponRate),1/360) - 1; }
+      }
+    },
+    calculateOportunidad() {
+      if (this.bond.costoOportunidadType == "Nominal") {
+        if (this.bond.capitalizationType == "Semestral") { this.costoPeriodica = this.bond.costoOportunidad/2; }
+        else if (this.bond.capitalizationType == "Mensual") { this.costoPeriodica = this.bond.costoOportunidad/12; }
+        else if (this.bond.capitalizationType == "Bimestral") { this.costoPeriodica = this.bond.costoOportunidad/6; }
+        else if (this.bond.capitalizationType == "Anual") { this.costoPeriodica = this.bond.costoOportunidad/1; }
+        else if (this.bond.capitalizationType == "Quincenal") { this.costoPeriodica = this.bond.costoOportunidad/24; }
+        else if (this.bond.capitalizationType == "Trimestral") { this.costoPeriodica = this.bond.costoOportunidad/4; }
+        else { this.costoPeriodica = this.bond.costoOportunidad/360; }
+      }
+      else {
+        if (this.bond.capitalizationType == "Semestral") { this.costoPeriodica = Math.pow((1 + this.bond.costoOportunidad),1/2) - 1; }
+        else if (this.bond.capitalizationType == "Mensual") { this.costoPeriodica = Math.pow((1 + this.bond.costoOportunidad),1/12) - 1; }
+        else if (this.bond.capitalizationType == "Bimestral") { this.costoPeriodica = Math.pow((1 + this.bond.costoOportunidad),1/6) - 1; }
+        else if (this.bond.capitalizationType == "Anual") { this.costoPeriodica = this.bond.couponRate; }
+        else if (this.bond.capitalizationType == "Quincenal") { this.costoPeriodica = Math.pow((1 + this.bond.costoOportunidad),1/24) - 1; }
+        else if (this.bond.capitalizationType == "Trimestral") { this.costoPeriodica = Math.pow((1 + this.bond.costoOportunidad),1/4) - 1; }
+        else { this.costoPeriodica = Math.pow((1 + this.bond.costoOportunidad),1/360) - 1; }
       }
     },
     calculateCashFlow() {
@@ -281,26 +321,28 @@ export default {
       this.cashFlow.interes[0] = null;
 
       for(let i = 0; i < p; i++) {
-        if (i == 0) this.cashFlow.quota.push(this.bond.nominalValue * -1);
+        if (i == 0) this.cashFlow.quota.push(this.bond.nominalValue * - 1);
         else this.cashFlow.quota.push(this.cashFlow.interes[i] + this.cashFlow.amortization[i]);
       }
     },
     calculateBondPrice() {
       for (let i = 0; i < this.cashFlow.periods.length; i++) {
         if (i > 0) {
-          this.bondPrice = this.bondPrice + (this.cashFlow.quota[i]/(Math.pow(1 + this.tasaPeriodica/100, i)));
+          if (this.bond.costoOportunidad == '') this.bondPrice = this.bondPrice + (this.cashFlow.quota[i]/(Math.pow(1 + this.tasaPeriodica/100, i)));
+          else { this.bondPrice = this.bondPrice + (this.cashFlow.quota[i]/(Math.pow(1 + this.costoPeriodica/100, i))); }
         }
       }
-      this.bondPrice = this.bondPrice.toFixed(5);
+      this.bondPrice = this.roundDecimal(this.bondPrice, 5);
     },
     calculateVAN() {
       for (let i = 0; i < this.cashFlow.periods.length; i++) {
         if (i > 0) {
-          this.bond.VAN = this.bond.VAN + (this.cashFlow.quota[i]/(Math.pow(1 + this.tasaPeriodica/100, i)));
+          if (this.bond.costoOportunidad == '') this.bond.VAN = this.bond.VAN + (this.cashFlow.quota[i]/(Math.pow(1 + this.tasaPeriodica/100, i)));
+          else { this.bond.VAN = this.bond.VAN + (this.cashFlow.quota[i]/(Math.pow(1 + this.costoPeriodica/100, i))); }
         }
       }
-      this.bond.VAN = this.bond.VAN.toFixed(5);
       this.bond.VAN = this.bond.VAN - this.bond.nominalValue;
+      this.bond.VAN = this.roundDecimal(this.bond.VAN, 5);
     },
     calculateTIR(periods) {
       let ret = -1000000000.0;
@@ -357,6 +399,17 @@ export default {
     },
     openAddSecondMarket() {
       this.dialogSecondMarket = true;
+    },
+    results() {
+      this.tasaPeriodica = this.roundDecimal(this.tasaPeriodica, 5);
+      for(let i = 0; i < this.cashFlow.interes.length; i++) {
+        this.cashFlow.interes[i] = this.roundDecimal(this.cashFlow.interes[i], 2);
+        this.cashFlow.quota[i] = this.roundDecimal(this.cashFlow.quota[i], 2);
+      }
+    },
+    roundDecimal(num, decimal) {
+      let m = Number((Math.abs(num) * Math.pow(10, decimal)).toPrecision(15));
+      return (Math.round(m) / Math.pow(10, decimal)) * Math.sign(num);
     },
     createSecondMarket() {
       this.$refs.formSecondMarket.validate();
